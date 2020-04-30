@@ -11,7 +11,7 @@ dependencies = [
  "futures-core",
  "futures-sink",
  "log",
- "tokio 0.2.19",
+ "tokio 0.2.20",
  "tokio-util 0.2.0",
 ]
 
@@ -138,7 +138,7 @@ dependencies = [
  "copyless",
  "futures-channel",
  "futures-util",
- "tokio 0.2.19",
+ "tokio 0.2.20",
 ]
 
 [[package]]
@@ -569,6 +569,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "dotenv"
+version = "0.15.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "77c90badedccf4105eca100756a0b1289e191f6fcbdadd3cee1d2f614f97da8f"
+
+[[package]]
 name = "dtoa"
 version = "0.4.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -832,7 +838,7 @@ dependencies = [
  "indexmap",
  "log",
  "slab",
- "tokio 0.2.19",
+ "tokio 0.2.20",
  "tokio-util 0.3.1",
 ]
 
@@ -964,7 +970,7 @@ dependencies = [
  "net2",
  "pin-project",
  "time",
- "tokio 0.2.19",
+ "tokio 0.2.20",
  "tower-service",
  "want 0.3.0",
 ]
@@ -991,7 +997,7 @@ dependencies = [
  "bytes 0.5.4",
  "hyper 0.13.5",
  "native-tls",
- "tokio 0.2.19",
+ "tokio 0.2.20",
  "tokio-tls",
 ]
 
@@ -1211,10 +1217,22 @@ dependencies = [
  "kernel32-sys",
  "libc",
  "log",
- "miow",
+ "miow 0.2.1",
  "net2",
  "slab",
  "winapi 0.2.8",
+]
+
+[[package]]
+name = "mio-named-pipes"
+version = "0.1.6"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f5e374eff525ce1c5b7687c4cef63943e7686524a387933ad27ca7ec43779cb3"
+dependencies = [
+ "log",
+ "mio",
+ "miow 0.3.3",
+ "winapi 0.3.8",
 ]
 
 [[package]]
@@ -1238,6 +1256,16 @@ dependencies = [
  "net2",
  "winapi 0.2.8",
  "ws2_32-sys",
+]
+
+[[package]]
+name = "miow"
+version = "0.3.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "396aa0f2003d7df8395cb93e09871561ccc3e785f0acb369170e8cc74ddf9226"
+dependencies = [
+ "socket2",
+ "winapi 0.3.8",
 ]
 
 [[package]]
@@ -1584,7 +1612,7 @@ dependencies = [
  "serde_json",
  "serde_urlencoded",
  "time",
- "tokio 0.2.19",
+ "tokio 0.2.20",
  "tokio-tls",
  "url 2.1.1",
  "wasm-bindgen",
@@ -1627,6 +1655,7 @@ dependencies = [
  "actix-web",
  "awc",
  "bytes 0.5.4",
+ "dotenv",
  "futures 0.3.4",
  "json",
  "listenfd",
@@ -1636,6 +1665,7 @@ dependencies = [
  "serde",
  "serde_derive",
  "serde_json",
+ "tokio 0.2.20",
  "twilio-async",
 ]
 
@@ -1929,9 +1959,9 @@ dependencies = [
 
 [[package]]
 name = "tokio"
-version = "0.2.19"
+version = "0.2.20"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7d9c43f1bb96970e153bcbae39a65e249ccb942bd9d36dbdf086024920417c9c"
+checksum = "05c1d570eb1a36f0345a5ce9c6c6e665b70b73d11236912c0b477616aeec47b1"
 dependencies = [
  "bytes 0.5.4",
  "fnv",
@@ -1941,10 +1971,13 @@ dependencies = [
  "libc",
  "memchr",
  "mio",
+ "mio-named-pipes",
  "mio-uds",
+ "num_cpus",
  "pin-project-lite",
  "signal-hook-registry",
  "slab",
+ "tokio-macros",
  "winapi 0.3.8",
 ]
 
@@ -1991,13 +2024,24 @@ dependencies = [
 ]
 
 [[package]]
+name = "tokio-macros"
+version = "0.2.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f0c3acc6aa564495a0f2e1d59fab677cd7f81a19994cfc7f3ad0e64301560389"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn",
+]
+
+[[package]]
 name = "tokio-openssl"
 version = "0.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3c4b08c5f4208e699ede3df2520aca2e82401b2de33f45e96696a074480be594"
 dependencies = [
  "openssl",
- "tokio 0.2.19",
+ "tokio 0.2.20",
 ]
 
 [[package]]
@@ -2079,7 +2123,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7bde02a3a5291395f59b06ec6945a3077602fac2b07eeeaf0dee2122f3619828"
 dependencies = [
  "native-tls",
- "tokio 0.2.19",
+ "tokio 0.2.20",
 ]
 
 [[package]]
@@ -2093,7 +2137,7 @@ dependencies = [
  "futures-sink",
  "log",
  "pin-project-lite",
- "tokio 0.2.19",
+ "tokio 0.2.20",
 ]
 
 [[package]]
@@ -2107,7 +2151,7 @@ dependencies = [
  "futures-sink",
  "log",
  "pin-project-lite",
- "tokio 0.2.19",
+ "tokio 0.2.20",
 ]
 
 [[package]]
@@ -2132,7 +2176,7 @@ dependencies = [
  "rand",
  "smallvec 1.4.0",
  "socket2",
- "tokio 0.2.19",
+ "tokio 0.2.20",
  "url 2.1.1",
 ]
 
@@ -2151,7 +2195,7 @@ dependencies = [
  "lru-cache",
  "resolv-conf",
  "smallvec 1.4.0",
- "tokio 0.2.19",
+ "tokio 0.2.20",
  "trust-dns-proto",
 ]
 

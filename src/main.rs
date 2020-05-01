@@ -11,7 +11,7 @@ use listenfd::ListenFd;
 async fn main() -> std::io::Result<()> {
     let mut listenfd = ListenFd::from_env();
     let address = "0.0.0.0:";
-    let port = "8000";
+    let port = "8088";
     let target = format!("{}{}", address, port);
 
 
@@ -24,11 +24,13 @@ async fn main() -> std::io::Result<()> {
     });
 
     server = if let Some(l) = listenfd.take_tcp_listener(0).unwrap() {
+        println!("Listening on: {}", &target);
         server.listen(l)?
     } else {
         server.bind(&target)?
     };
 
+    println!("Started http server: {}", &target);
     server.run().await
    
 }

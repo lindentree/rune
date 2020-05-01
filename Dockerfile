@@ -7,6 +7,7 @@ RUN apt-get update && \
     rustup target add x86_64-unknown-linux-musl
 
 WORKDIR /usr/src/rurune
+#COPY ./static ./
 COPY ./ ./
 
 RUN RUSTFLAGS=-Clinker=musl-gcc cargo build --release --target=x86_64-unknown-linux-musl
@@ -29,8 +30,8 @@ RUN apk add --no-cache libpq
 
 WORKDIR /root/
 
-COPY --from=0 /usr/src/rurune/static .
-COPY --from=0 /usr/src/rurune/target/x86_64-unknown-linux-musl/release/rurune .
+COPY ./static ./static
 
+COPY --from=0 /usr/src/rurune/target/x86_64-unknown-linux-musl/release/rurune .
 
 CMD ["./rurune"]

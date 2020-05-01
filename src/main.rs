@@ -10,6 +10,10 @@ use listenfd::ListenFd;
 #[actix_rt::main]
 async fn main() -> std::io::Result<()> {
     let mut listenfd = ListenFd::from_env();
+    let address = "0.0.0.0:";
+    let port = "8000";
+    let target = format!("{}{}", address, port);
+
 
     let mut server = HttpServer::new(|| {
         App::new()
@@ -22,7 +26,7 @@ async fn main() -> std::io::Result<()> {
     server = if let Some(l) = listenfd.take_tcp_listener(0).unwrap() {
         server.listen(l)?
     } else {
-        server.bind("127.0.0.1:8088")?
+        server.bind(&target)?
     };
 
     server.run().await

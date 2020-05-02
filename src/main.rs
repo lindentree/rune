@@ -36,8 +36,8 @@ async fn graphql(
         .body(user))
 }
 
-fn graphiql() -> HttpResponse {
-    let html = graphiql_source("http://localhost:8088/graphql");
+async fn graphiql() -> HttpResponse {
+    let html = graphiql_source("http://127.0.0.1:8080/graphiql");
     HttpResponse::Ok()
         .content_type("text/html; charset=utf-8")
         .body(html)
@@ -50,18 +50,18 @@ async fn main() -> std::io::Result<()> {
     let schema = std::sync::Arc::new(create_schema());
 
     let address = "0.0.0.0:";
-    let port = "8088";
+    let port = "8080";
     let target = format!("{}{}", address, port);
 
     let mut server = HttpServer::new(move || {
         App::new()
+            .data(schema.clone())
+            .service(web::resource("/graphiql").route(web::get().to(graphiql)))
             .service(
                  // static files
-                 fs::Files::new("/", "./static/").index_file("index.html"),
+                fs::Files::new("/", "./static/").index_file("index.html"),
             )
-            .data(schema.clone())
             .service(web::resource("/graphql").route(web::post().to(graphql)))
-            .service(web::resource("/graphiql").route(web::get().to(graphiql)))
     });
 
     server = if let Some(l) = listenfd.take_tcp_listener(0).unwrap() {

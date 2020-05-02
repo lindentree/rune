@@ -1,26 +1,67 @@
+#[macro_use]
+extern crate juniper;
+
+use std::io;
+use std::sync::Arc;
+//use std::error::Error;
+use std::fmt;
+
+use std::future::Future;
+//use futures_async_combinators::future::{ready, map_err};
+
+
 use actix_files as fs;
-use actix_web::{web, App, HttpRequest, HttpResponse, HttpServer, Responder};
+use actix_web::{web, App, HttpRequest, HttpResponse, HttpServer, Responder, Error};
 use listenfd::ListenFd;
 
+use juniper::http::graphiql::graphiql_source;
+use juniper::http::GraphQLRequest;
 
-// async fn index(_req: HttpRequest) -> impl Responder {
-//     HttpResponse::Ok().body("Hello world!")
-// }
+mod graphql_schema;
+
+use crate::graphql_schema::{create_schema, Schema};
+
+
+async fn graphql(
+    st: web::Data<Arc<Schema>>,
+    data: web::Json<GraphQLRequest>,
+) -> Result<HttpResponse, Error> {
+    let user = web::block(move || {
+        let res = data.execute(&st, &());
+        Ok::<_, serde_json::error::Error>(serde_json::to_string(&res)?)
+    })
+    .await?;
+    Ok(HttpResponse::Ok()
+        .content_type("application/json")
+        .body(user))
+}
+
+fn graphiql() -> HttpResponse {
+    let html = graphiql_source("http://localhost:8088/graphql");
+    HttpResponse::Ok()
+        .content_type("text/html; charset=utf-8")
+        .body(html)
+}
+
 
 #[actix_rt::main]
 async fn main() -> std::io::Result<()> {
     let mut listenfd = ListenFd::from_env();
+    let schema = std::sync::Arc::new(create_schema());
+
     let address = "0.0.0.0:";
     let port = "8088";
     let target = format!("{}{}", address, port);
 
-
-    let mut server = HttpServer::new(|| {
+    let mut server = HttpServer::new(move || {
         App::new()
             .service(
                  // static files
                  fs::Files::new("/", "./static/").index_file("index.html"),
             )
+            .data(schema.clone())
+            .service(web::resource("/graphql").route(web::post().to(graphql)))
+            .service(web::resource("/graphiql").route(web::get().to(graphiql)))
     });
 
     server = if let Some(l) = listenfd.take_tcp_listener(0).unwrap() {
@@ -29,8 +70,11 @@ async fn main() -> std::io::Result<()> {
         server.bind(&target)?
     };
 
+
+    println!("Server starting...");
     server.run().await
    
 }
+
 
 

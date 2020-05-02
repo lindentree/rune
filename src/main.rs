@@ -24,13 +24,11 @@ async fn main() -> std::io::Result<()> {
     });
 
     server = if let Some(l) = listenfd.take_tcp_listener(0).unwrap() {
-        println!("Listening on: {}", &target);
         server.listen(l)?
     } else {
         server.bind(&target)?
     };
 
-    println!("Started http server: {}", &target);
     server.run().await
    
 }

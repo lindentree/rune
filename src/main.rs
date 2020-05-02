@@ -7,11 +7,11 @@ use std::sync::Arc;
 use std::fmt;
 
 use std::future::Future;
-//use futures_async_combinators::future::{ready, map_err};
-
 
 use actix_files as fs;
-use actix_web::{web, App, HttpRequest, HttpResponse, HttpServer, Responder, Error};
+use actix_cors::Cors;
+
+use actix_web::{web, App, HttpRequest, HttpResponse, HttpServer, Responder, Error, http::header};
 use listenfd::ListenFd;
 
 use juniper::http::graphiql::graphiql_source;
@@ -56,6 +56,16 @@ async fn main() -> std::io::Result<()> {
     let mut server = HttpServer::new(move || {
         App::new()
             .data(schema.clone())
+            .wrap(
+                Cors::new()
+                .supports_credentials() 
+                .allowed_origin("http://localhost:8080")
+                .allowed_methods(vec!["GET", "POST"])
+                .allowed_headers(vec![header::AUTHORIZATION, header::ACCEPT])
+                .allowed_header(header::CONTENT_TYPE)
+                .max_age(3600)
+                .finish(),
+            )
             .service(web::resource("/graphiql").route(web::get().to(graphiql)))
             .service(
                  // static files

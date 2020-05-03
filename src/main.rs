@@ -66,7 +66,7 @@ async fn main() -> std::io::Result<()> {
                 .max_age(3600)
                 .finish(),
             )
-            .service(web::resource("/graphiql").route(web::get().to(graphiql)))
+            .service(web::resource("/graphql").route(web::get().to(graphiql)))
             .service(
                  // static files
                 fs::Files::new("/", "./static/").index_file("index.html"),

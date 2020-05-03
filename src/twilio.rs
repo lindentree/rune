@@ -1,13 +1,15 @@
 #![allow(dead_code)]
 use std::{env, error::Error};
 use twilio_async::{MsgResp, Twilio, TwilioJson, TwilioRequest};
+use std::future::Future;
 
-type Result<T> = std::result::Result<T, Box<dyn Error + Send + Sync + 'static>>;
+
+type Result<T> = std::result::Result<T, Box<dyn Future <Output = dyn Error + Send + Sync + 'static>>>;
 
 #[tokio::main]
 async fn twilio_api() -> Result<()> {
-    let twilio = Twilio::new(env::var("TWILIO_SID")?, env::var("TWILIO_TOKEN")?)?;
-    try_msg(twilio).await?;
+    let twilio = Twilio::new(env::var("TWILIO_SID"), env::var("TWILIO_TOKEN"));
+    try_msg(twilio).await;
     // try_call(twilio).await?;
     // try_conference(twilio).await?;
     Ok(())
@@ -26,9 +28,9 @@ async fn twilio_api() -> Result<()> {
 // }
 
 async fn try_msg(twilio: Twilio) -> Result<()> {
-    let num = env::var("OUTBOUND_NUM")?;
+    let num = env::var("OUTBOUND_NUM");
     // sending a message
-    let resp = twilio.send_msg(&num, &num, "Hello World").run().await?;
+    let resp = twilio.send_msg(&num, "Hello World").run().await;
 
     println!("{:?}", resp);
     // sending with media
@@ -36,10 +38,10 @@ async fn try_msg(twilio: Twilio) -> Result<()> {
         .send_msg("18193074013", &num, "foo")
         .media("http://i0.kym-cdn.com/photos/images/newsfeed/000/377/946/0b9.jpg")
         .run()
-        .await?;
+        .await;
     // get individual msg
     if let Some(TwilioJson::Success(MsgResp { sid, .. })) = resp {
-        let resp = twilio.msg(&sid).run().await?;
+        let resp = twilio.msg(&sid).run().await;
         println!("{:?}", resp);
     }
     // delete a message
@@ -51,17 +53,17 @@ async fn try_msg(twilio: Twilio) -> Result<()> {
     // get a msg media url
     // twilio.msg("messagesid").media()?;
     // // get all messages
-    let resp = twilio.msgs().run().await?;
+    let resp = twilio.msgs().run().await;
     println!("{:?}", resp);
     // // get all messages between some time
     let resp = twilio
         .msgs()
         .between("2010-01-01", "2020-01-01")
         .run()
-        .await?;
+        .await;
     println!("{:?}", resp);
     // // get all messages on a specific date
-    let resp = twilio.msgs().on("2020-01-01").run().await?;
+    let resp = twilio.msgs().on("2020-01-01").run().await;
     println!("{:?}", resp);
     Ok(())
 }

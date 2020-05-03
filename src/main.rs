@@ -3,7 +3,8 @@ extern crate juniper;
 
 use std::io;
 use std::sync::Arc;
-//use std::error::Error;
+use std::collections::HashMap;
+
 use std::fmt;
 
 use std::future::Future;
@@ -13,6 +14,7 @@ use actix_cors::Cors;
 
 use actix_web::{web, App, HttpRequest, HttpResponse, HttpServer, Responder, Error, http::header};
 use listenfd::ListenFd;
+use askama::Template;
 
 use juniper::http::graphiql::graphiql_source;
 use juniper::http::GraphQLRequest;
@@ -21,6 +23,30 @@ mod graphql_schema;
 
 use crate::graphql_schema::{create_schema, Schema};
 
+#[derive(Template)]
+#[template(path = "user.html")]
+struct UserTemplate<'a> {
+    name: &'a str,
+    text: &'a str,
+}
+
+#[derive(Template)]
+#[template(path = "index.html")]
+struct Index;
+
+async fn index(query: web::Query<HashMap<String, String>>) -> Result<HttpResponse, Error> {
+    let s = if let Some(name) = query.get("name") {
+        UserTemplate {
+            name,
+            text: "Welcome!",
+        }
+        .render()
+        .unwrap()
+    } else {
+        Index.render().unwrap()
+    };
+    Ok(HttpResponse::Ok().content_type("text/html").body(s))
+}
 
 async fn graphql(
     st: web::Data<Arc<Schema>>,
@@ -37,7 +63,7 @@ async fn graphql(
 }
 
 async fn graphiql() -> HttpResponse {
-    let html = graphiql_source("http://127.0.0.1:8080/graphql");
+    let html = graphiql_source("http://localhost:8080/graphql");
     HttpResponse::Ok()
         .content_type("text/html; charset=utf-8")
         .body(html)
@@ -68,6 +94,7 @@ async fn main() -> std::io::Result<()> {
             )
             .service(web::resource("/graphiql").route(web::get().to(graphiql)))
             .service(web::resource("/graphql").route(web::post().to(graphql)))
+            .service(web::resource("/form").route(web::get().to(index)))
             .service(
                  // static files
                 fs::Files::new("/", "./static/").index_file("index.html"),

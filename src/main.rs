@@ -26,8 +26,8 @@ use crate::graphql_schema::{create_schema, Schema};
 #[derive(Template)]
 #[template(path = "user.html")]
 struct UserTemplate<'a> {
-    name: &'a str,
     text: &'a str,
+    pokemon: &'a str,
 }
 
 #[derive(Template)]
@@ -35,10 +35,11 @@ struct UserTemplate<'a> {
 struct Index;
 
 async fn index(query: web::Query<HashMap<String, String>>) -> Result<HttpResponse, Error> {
-    let s = if let Some(name) = query.get("name") {
+    let s = if let Some(pokemon) = query.get("pokemon") {
         UserTemplate {
-            name,
-            text: "Welcome!",
+            text: "Cool!",
+            pokemon,
+          
         }
         .render()
         .unwrap()

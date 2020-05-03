@@ -1,5 +1,5 @@
 // graphql_schema.rs
-use juniper::{EmptyMutation, RootNode};
+use juniper::{EmptyMutation, RootNode, FieldResult};
 
 struct Pokemon {
   id: i32,
@@ -21,21 +21,24 @@ pub struct QueryRoot;
 
 #[juniper::object]
 impl QueryRoot {
-  fn pocket_monsters() -> Vec<Pokemon> {
+  fn pocket_monsters(id: i32) -> Vec<Pokemon> {
     vec![
       Pokemon {
-        id: 1,
+        id: 1.to_owned(),
         name: "Bulbasaur".to_owned(),
       },
       Pokemon {
-        id: 2,
+        id: 2.to_owned(),
         name: "Ivysaur".to_owned(),
       },
       Pokemon {
-        id: 3,
+        id: 3.to_owned(),
         name: "Venusaur".to_owned(),
       }
     ]
+    .into_iter()
+    .filter(|pokemon| pokemon.id == id)
+    .collect()
   }
 }
 

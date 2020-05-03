@@ -37,7 +37,7 @@ async fn graphql(
 }
 
 async fn graphiql() -> HttpResponse {
-    let html = graphiql_source("http://127.0.0.1:8080/graphiql");
+    let html = graphiql_source("http://127.0.0.1:8080/graphql");
     HttpResponse::Ok()
         .content_type("text/html; charset=utf-8")
         .body(html)
@@ -66,12 +66,13 @@ async fn main() -> std::io::Result<()> {
                 .max_age(3600)
                 .finish(),
             )
-            .service(web::resource("/graphql").route(web::get().to(graphiql)))
+            .service(web::resource("/graphiql").route(web::get().to(graphiql)))
+            .service(web::resource("/graphql").route(web::post().to(graphql)))
             .service(
                  // static files
                 fs::Files::new("/", "./static/").index_file("index.html"),
             )
-            .service(web::resource("/graphql").route(web::post().to(graphql)))
+         
     });
 
     server = if let Some(l) = listenfd.take_tcp_listener(0).unwrap() {

@@ -30,6 +30,10 @@ impl QueryRoot {
       Pokemon {
         id: 2,
         name: "Ivysaur".to_owned(),
+      },
+      Pokemon {
+        id: 3,
+        name: "Venusaur".to_owned(),
       }
     ]
   }

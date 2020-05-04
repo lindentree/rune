@@ -11,7 +11,7 @@ https://www.rust-lang.org/tools/install
 
 https://doc.rust-lang.org/book/ch01-01-installation.html
 
-After Rust/Cargo is installed, git clone this repo, cd into the root folder, and run `cargo run` in your terminal to start up the server.
+After Rust/Cargo is installed, git clone this repo, cd into the root folder, and run `cargo run` in your terminal to compile the Rust code and start up the server.
 
 # Features/To-dos
 
@@ -23,7 +23,7 @@ Implement forms - [x]
 
 Implement GraphQL - [-] *partially working*
 
-Scale concurrent request handing - []
+Scale concurrent request handling - []
 
 ## Integrate third party APIs
 

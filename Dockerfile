@@ -7,7 +7,6 @@ RUN apt-get update && \
     rustup target add x86_64-unknown-linux-musl
 
 WORKDIR /usr/src/rurune
-#COPY ./static ./
 COPY ./ ./
 
 RUN RUSTFLAGS=-Clinker=musl-gcc cargo build --release --target=x86_64-unknown-linux-musl

@@ -12,15 +12,15 @@ https://doc.rust-lang.org/book/ch01-01-installation.html
 
 After Rust/cargo is installed, git clone this repo, cd into the root folder, and run `cargo run` in your terminal to start up the server.
 
-# 
+# Features/To-dos
 
 Serve static files - [x]
 Containerize and deploy - [x]
 Implement forms - [x]
-Implement GraphQL - [-] *partially working
+Implement GraphQL - [-] *partially working*
 Scale concurrent request handing - []
 
-# Integrate third party APIs
+## Integrate third party APIs
 
 Twilio - []
 Tensorflow - []

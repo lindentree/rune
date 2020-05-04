@@ -1,5 +1,6 @@
 #[macro_use]
 extern crate juniper;
+use crate::graphql_schema::{create_schema, Schema};
 
 use std::io;
 use std::sync::Arc;
@@ -21,7 +22,6 @@ use juniper::http::GraphQLRequest;
 
 mod graphql_schema;
 
-use crate::graphql_schema::{create_schema, Schema};
 
 #[derive(Template)]
 #[template(path = "user.html")]
@@ -86,7 +86,6 @@ async fn main() -> std::io::Result<()> {
             .wrap(
                 Cors::new()
                 .supports_credentials() 
-                .allowed_origin("http://localhost:8080")
                 .allowed_methods(vec!["GET", "POST"])
                 .allowed_headers(vec![header::AUTHORIZATION, header::ACCEPT])
                 .allowed_header(header::CONTENT_TYPE)

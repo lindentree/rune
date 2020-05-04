@@ -8,9 +8,10 @@ It currently consists of a web server that serves: static files, a basic input f
 This project requires the Rust toolchain be installed on your computer.
 
 https://www.rust-lang.org/tools/install
+
 https://doc.rust-lang.org/book/ch01-01-installation.html
 
-After Rust/cargo is installed, git clone this repo, cd into the root folder, and run `cargo run` in your terminal to start up the server.
+After Rust/Cargo is installed, git clone this repo, cd into the root folder, and run `cargo run` in your terminal to start up the server.
 
 # Features/To-dos
 

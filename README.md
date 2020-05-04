@@ -16,12 +16,17 @@ After Rust/Cargo is installed, git clone this repo, cd into the root folder, and
 # Features/To-dos
 
 Serve static files - [x]
+
 Containerize and deploy - [x]
+
 Implement forms - [x]
+
 Implement GraphQL - [-] *partially working*
+
 Scale concurrent request handing - []
 
 ## Integrate third party APIs
 
 Twilio - []
+
 Tensorflow - []

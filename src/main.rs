@@ -34,11 +34,9 @@ struct UserTemplate<'a> {
 #[template(path = "index.html")]
 struct Index;
 
-<<<<<<< HEAD
 extern crate tensorflow;
 
 
-=======
 async fn index(query: web::Query<HashMap<String, String>>) -> Result<HttpResponse, Error> {
     let s = if let Some(pokemon) = query.get("pokemon") {
         UserTemplate {
@@ -74,7 +72,6 @@ async fn graphiql() -> HttpResponse {
         .content_type("text/html; charset=utf-8")
         .body(html)
 }
->>>>>>> master
 
 
 #[actix_rt::main]

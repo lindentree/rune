@@ -25,6 +25,8 @@ Implement GraphQL - [-] *partially working*
 
 Scale concurrent request handling - []
 
+Benchmark performance against NodeJS, Rails, Django/Flask - []
+
 ## Integrate third party APIs
 
 Twilio - []

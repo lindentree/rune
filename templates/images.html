@@ -14,26 +14,22 @@
                 <table class="table is-fullwidth">
                     <thead>
                         <tr>
-                            <th>Task ID</th>
-                            <th>Timestamp</th>
                             <th>Status</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {% for task in tasks %}
                         <tr>
-                            <td>{{ task.task_id }}</td>
-                            <td>{{ task.timestamp }}</td>
-                            <td>{{ task.status }}</td>
+                            <td>{{ images }}</td>
+                        
                         </tr>
-                        {% endfor %}
+                   
                     </tbody>
                 </table>
             </div>
         </section>
         <section class="section">
             <div class="container is-fullwidth">
-                <form class="form" action="/task" method="post" enctype="multipart/form-data">
+                <form class="form" action="/image" method="post" enctype="multipart/form-data">
                     <div class="field">
                         <div class="control">
                             <div class="file">

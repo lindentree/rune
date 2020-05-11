@@ -3,24 +3,27 @@ extern crate juniper;
 use crate::graphql_schema::{create_schema, Schema};
 
 use std::io;
+use std::io::Write;
 use std::collections::HashMap;
 use std::fmt;
 use std::sync::{Arc, Mutex};
 //use std::future::Future;
-use futures::{future, Future, Stream};
+use futures::{future, Future, Stream, StreamExt, TryStreamExt};
 
-use log::debug;
+//use log::debug;
 use indexmap::IndexMap;
 
 use actix_files as fs;
 use actix_cors::Cors;
 
 use actix_web::dev::Payload;
-use actix_web::error::MultipartError;
+//use actix_web::error::MultipartError;
 use actix_web::http::{self, StatusCode};
-use actix_web::multipart::MultipartItem;
+//use actix_web::multipart::MultipartItem;
+use actix_multipart::Multipart;
 
-use actix_web::{web, App, HttpMessage, HttpRequest, HttpResponse, HttpServer, Responder, Error as WebError, http::header};
+
+use actix_web::{web, App, HttpMessage, HttpRequest, HttpResponse, HttpServer, Responder, Error, http::header};
 use listenfd::ListenFd;
 use askama::Template;
 
@@ -43,87 +46,130 @@ struct Index;
 
 #[derive(Template)]
 #[template(path = "images.html")]
-struct Images {
-    images: Vec<Record>,
+struct Images<'a> {
+    images: &'a str,
 }
 
-#[derive(Clone)]
-struct Record {
-    status: Status,
-}
+// #[derive(Clone)]
+// struct Record {
+//     status: Status,
+// }
 
 #[derive(Clone)]
 enum Status {
     InProgress,
 }
 
-type SharedImages = Arc<Mutex<IndexMap<String, Record>>>;
-
-#[derive(Clone)]
-struct State {
-    tasks: SharedImages,
-}
-
-extern crate tensorflow;
-
-pub fn handle_multipart_item(
-    item: MultipartItem<Payload>,
-) -> Box<Stream<Item = Vec<u8>, Error = MultipartError>> {
-    match item {
-        MultipartItem::Field(field) => {
-            Box::new(field.concat2().map(|bytes| bytes.to_vec()).into_stream())
+impl fmt::Display for Status {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            Status::InProgress => write!(f, "in progress"),
         }
-        MultipartItem::Nested(mp) => Box::new(mp.map(handle_multipart_item).flatten()),
     }
 }
 
-fn upload_handler(req: HttpRequest<State>) -> impl Future<Item = HttpResponse, Error = WebError> {
-    req.multipart()
-        .map(handle_multipart_item)
-        .flatten()
-        .into_future()
-        .and_then(|(bytes, stream)| {
-            if let Some(bytes) = bytes {
-                Ok(bytes)
-            } else {
-                Err((MultipartError::Incomplete, stream))
-            }
-        })
-        .map_err(|(err, _)| WebError::from(err))
-        .and_then(move |image| {
-            debug!("Image: {:?}", image);
-            let request = image;
-            req.state()
-                .from_err()
-                // .map(move |task_id| {
-                //     let record = Record {
-                //         task_id: task_id.clone(),
-                //         timestamp: Utc::now(),
-                //         status: Status::InProgress,
-                //     };
-                //     req.state().tasks.lock().unwrap().insert(task_id, record);
-                //     req
-                // })
-        })
-        .map(|req| {
-            HttpResponse::build_from(&req)
-                .status(StatusCode::FOUND)
-                .header(header::LOCATION, "/images")
-                .finish()
-        })
+//type SharedImages = Arc<Mutex<IndexMap<String, Record>>>;
+
+// #[derive(Clone)]
+// struct State {
+//     state: SharedImages,
+// }
+
+extern crate tensorflow;
+
+// pub fn handle_multipart_item(
+//     item: MultipartItem<Payload>,
+// ) -> Box<Stream<Item = Vec<u8>, Error = MultipartError>> {
+//     match item {
+//         MultipartItem::Field(field) => {
+//             Box::new(field.concat2().map(|bytes| bytes.to_vec()).into_stream())
+//         }
+//         MultipartItem::Nested(mp) => Box::new(mp.map(handle_multipart_item).flatten()),
+//     }
+// }
+
+// fn upload_handler(req: HttpRequest<State>) -> impl Future<Item = HttpResponse, Error = WebError> {
+//     req.multipart()
+//         .map(handle_multipart_item)
+//         .flatten()
+//         .into_future()
+//         .and_then(|(bytes, stream)| {
+//             if let Some(bytes) = bytes {
+//                 Ok(bytes)
+//             } else {
+//                 Err((MultipartError::Incomplete, stream))
+//             }
+//         })
+//         .map_err(|(err, _)| WebError::from(err))
+//         .and_then(move |image| {
+//             debug!("Image: {:?}", image);
+//             let request = image;
+//             req.state()
+//                 .from_err()
+//                 // .map(move |task_id| {
+//                 //     let record = Record {
+//                 //         task_id: task_id.clone(),
+//                 //         timestamp: Utc::now(),
+//                 //         status: Status::InProgress,
+//                 //     };
+//                 //     req.state().tasks.lock().unwrap().insert(task_id, record);
+//                 //     req
+//                 // })
+//         })
+//         .map(|req| {
+//             HttpResponse::build_from(&req)
+//                 .status(StatusCode::FOUND)
+//                 .header(header::LOCATION, "/images")
+//                 .finish()
+//         })
+// }
+
+async fn save_file(mut payload: Multipart) -> Result<HttpResponse, Error> {
+    println!("saving...");
+    // iterate over multipart stream
+    while let Ok(Some(mut field)) = payload.try_next().await {
+        let content_type = field.content_disposition().unwrap();
+        let filename = content_type.get_filename().unwrap();
+        let filepath = format!("./tmp/{}", filename);
+        // File::create is blocking operation, use threadpool
+        let mut f = web::block(|| std::fs::File::create(filepath))
+            .await
+            .unwrap();
+        // Field in turn is stream of *Bytes* object
+        while let Some(chunk) = field.next().await {
+            let data = chunk.unwrap();
+            // filesystem operations are blocking, we have to use threadpool
+            f = web::block(move || f.write_all(&data).map(|_| f)).await?;
+        }
+    }
+    Ok(HttpResponse::Ok().into())
 }
 
-fn images_handler(req: HttpRequest<State>) -> impl Future<Item = HttpResponse, Error = WebError> {
-    let images: Vec<_> = req
-        .state()
-        .images
-        .lock()
-        .unwrap()
-        .values()
-        .cloned()
-        .collect();
-    let tmpl = Images { images };
-    future::ok(HttpResponse::Ok().body(tmpl.render().unwrap()))
+// async fn images_handler(req: HttpRequest) -> Result<HttpResponse, Error> {
+//     let images: Vec<_> = req
+//         //.state()
+//        // .images
+//         //.lock()
+//         //.unwrap()
+//         //.values()
+//         //.cloned()
+//         .collect();
+//     let tmpl = Images { images };
+//     future::ok(HttpResponse::Ok().body(tmpl.render().unwrap())).await
+// }
+
+fn image_upload() -> HttpResponse {
+    let html = r#"<html>
+        <head><title>Upload Test</title></head>
+        <body>
+            <form target="/" method="post" enctype="multipart/form-data">
+                <input type="file" multiple name="file"/>
+                <input type="submit" value="Submit"></button>
+            </form>
+        </body>
+    </html>"#;
+
+    HttpResponse::Ok().body(html)
 }
 
 async fn index(query: web::Query<HashMap<String, String>>) -> Result<HttpResponse, Error> {
@@ -166,8 +212,9 @@ async fn graphiql() -> HttpResponse {
 async fn main() -> std::io::Result<()> {
     let mut listenfd = ListenFd::from_env();
     let schema = std::sync::Arc::new(create_schema());
-    let images = Arc::new(Mutex::new(IndexMap::new()));
-
+    //let images = Arc::new(Mutex::new(IndexMap::new()));
+    std::env::set_var("RUST_LOG", "actix_server=info,actix_web=info");
+    std::fs::create_dir_all("./tmp").unwrap();
 
     let address = "0.0.0.0:";
     let port = "80";
@@ -188,8 +235,11 @@ async fn main() -> std::io::Result<()> {
             .service(web::resource("/graphiql").route(web::get().to(graphiql)))
             .service(web::resource("/graphql").route(web::post().to(graphql)))
             .service(web::resource("/form").route(web::get().to(index)))
-            .service(web::resource("/image").route(web::post().to(upload_handler)))
-            .service(web::resource("/images").route(web::get().to(images_handler)))
+            .service(
+                web::resource("/images")
+                .route(web::get().to(image_upload))
+                .route(web::post().to(save_file))
+            )
             // .resource("/image", |r| {
             //     //r.method(http::Method::GET).with_async(snd_msg);
             //     r.method(http::Method::POST).with_async(upload_handler);

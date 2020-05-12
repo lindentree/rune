@@ -31,6 +31,7 @@ use juniper::http::graphiql::graphiql_source;
 use juniper::http::GraphQLRequest;
 
 mod graphql_schema;
+mod tensorflow_model;
 
 
 #[derive(Template)]

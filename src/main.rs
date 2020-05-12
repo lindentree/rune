@@ -10,6 +10,9 @@ use std::sync::{Arc, Mutex};
 //use std::future::Future;
 use futures::{future, Future, Stream, StreamExt, TryStreamExt};
 
+use std::fs::File;
+use std::io::Read;
+
 //use log::debug;
 use indexmap::IndexMap;
 
@@ -143,6 +146,8 @@ async fn save_file(mut payload: Multipart) -> Result<HttpResponse, Error> {
             f = web::block(move || f.write_all(&data).map(|_| f)).await?;
         }
     }
+
+    tensorflow_model::tensorflow_model::load_graph(&filepath);
     Ok(HttpResponse::Ok().into())
 }
 

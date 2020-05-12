@@ -2,7 +2,9 @@ use std::error::Error;
 
 use tensorflow::{Graph, ImportGraphDefOptions, Session, SessionOptions, SessionRunArgs, Tensor};
 use std::path::PathBuf;
-use structopt::StructOpt
+use structopt::StructOpt;
+
+use image::{Rgba, GenericImageView};
 
 #[derive(StructOpt)]
 struct Opt {
@@ -13,7 +15,7 @@ struct Opt {
     output: PathBuf
 }
 
-fn load_graph() -> Result<(), Box<dyn Error>> {
+pub fn load_graph(mut file: std::path::Path) -> Result<(), Box<dyn Error>> {
 
     let opt = Opt::from_args();
 
@@ -22,9 +24,9 @@ fn load_graph() -> Result<(), Box<dyn Error>> {
 
     //Then we create a tensorflow graph from the model
     let mut graph = Graph::new();
-    graph.import_graph_def(&*model, &ImportGraphDefOptions::new())?
+    graph.import_graph_def(&*model, &ImportGraphDefOptions::new())?;
 
-    let input_image = image::open(&opt.input)?;
+    let input_image = image::open(&file)?;
 
     let mut flattened: Vec<f32> = Vec::new();
 
@@ -57,7 +59,7 @@ fn load_graph() -> Result<(), Box<dyn Error>> {
      //Our probability
      let prob_res: Tensor<f32> = args.fetch(prob)?;
 
-     println!(prob_res);
+     println!("{}", prob_res);
 
 
     Ok(())

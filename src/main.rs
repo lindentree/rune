@@ -21,7 +21,7 @@ use juniper::http::graphiql::graphiql_source;
 use juniper::http::GraphQLRequest;
 
 mod graphql_schema;
-
+mod redis;
 
 #[derive(Template)]
 #[template(path = "user.html")]

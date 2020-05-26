@@ -12,6 +12,7 @@ use std::future::Future;
 
 use actix_files as fs;
 use actix_cors::Cors;
+use actix_multipart::Multipart;
 
 use actix_web::{web, App, HttpRequest, HttpResponse, HttpServer, Responder, Error, http::header};
 use listenfd::ListenFd;
@@ -71,6 +72,29 @@ async fn graphiql() -> HttpResponse {
 }
 
 
+fn redis_interface() -> HttpResponse {
+    let html = r#"<html>
+        <head><title>Redis Test</title></head>
+        <body>
+            <form target="/" method="post" enctype="multipart/form-data">
+                <input type="number" multiple name="number"/>
+                <input type="submit" value="Submit"></button>
+            </form>
+        </body>
+    </html>"#;
+
+    HttpResponse::Ok().body(html)
+}
+
+async fn save_key(mut payload: Multipart) -> Result<HttpResponse, Error> {
+    println!("saving...");
+    // iterate over multipart stream
+  
+
+    redis::redis::fetch_an_integer(payload);
+    Ok(HttpResponse::Ok().into())
+}
+
 #[actix_rt::main]
 async fn main() -> std::io::Result<()> {
     let mut listenfd = ListenFd::from_env();
@@ -95,6 +119,11 @@ async fn main() -> std::io::Result<()> {
             .service(web::resource("/graphiql").route(web::get().to(graphiql)))
             .service(web::resource("/graphql").route(web::post().to(graphql)))
             .service(web::resource("/form").route(web::get().to(index)))
+            .service(
+                web::resource("/redis")
+                .route(web::get().to(redis_interface))
+                .route(web::post().to(save_key))
+            )
             .service(
                  // static files
                 fs::Files::new("/", "./static/").index_file("index.html"),
